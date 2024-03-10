@@ -225,9 +225,9 @@ module NetworkProcessing
             # Calculate CCDF
             if CCDF
                 ccdf_values = 1.0 .- cumsum(probabilities)
-                plot=bar(bin_edges, ccdf_values,  xlabel="log(K)", ylabel="Comp. Cum. Log(Pk)", title="CCDF Log-Log Histogram",xticks=bin_edges, legend=false,bar_edges=false,xrotation=45, xformatter=custom_xformatter )
+                plot=bar(bin_edges, ccdf_values,  xlabel="log(K)", ylabel="Comp. Cum. Log(Pk)", title="CCDF Log-Log Histogram",xticks=bin_edges, legend=false,bar_edges=false,xrotation=45, xformatter=custom_xformatter, yscale=:log10 )
             else
-                plot=bar(bin_edges, probabilities,  xlabel="log(K)", ylabel="Log(Pk)", title="Log-Log PDF Histogram",xticks=bin_edges, legend=false,bar_edges=false,xrotation=45, xformatter=custom_xformatter )
+                plot=bar(bin_edges, probabilities,  xlabel="log(K)", ylabel="Log(Pk)", title="Log-Log PDF Histogram",xticks=bin_edges, legend=false,bar_edges=false,xrotation=45, xformatter=custom_xformatter, yscale=:log10 )
 
             end
 
