@@ -3,6 +3,7 @@ module NetworkProcessing
     export network_num_descriptors
     export nodes_num_descriptors
     export construct_df
+    export degree_pdf
 
     using Graphs, Graphs.Experimental.ShortestPaths
     using GraphIO
@@ -10,6 +11,7 @@ module NetworkProcessing
     using GraphIO.NET
     using Statistics
     using DataFrames
+    using Plots
 
     function parse_vertices_labels(filepath)
         vertex_labels = Dict{Int, AbstractString}()
@@ -179,4 +181,75 @@ module NetworkProcessing
         end
         return node_descriptors_df
     end
+  
+    #Fucntion to select the number of decimals displayed in the charts
+    function custom_xformatter(x)
+        return string(round(x, digits=3))  
+    end
+
+# Function to calculate the degree probability distribution function and the complimentary cummulative distribution function
+
+    function degree_pdf(graph, num_bins::Int=10, log_scale::Bool=false, CCDF::Bool=false)
+
+        degree_counts = Graphs.degree_histogram(graph)
+
+        # Calculate probabilities
+        num_nodes = nv(graph)
+        pdf =sort( Dict(degree => count / num_nodes for (degree, count) in degree_counts))
+
+        degrees = collect(keys(pdf))
+        probabilities = collect(values(pdf))
+
+
+        if log_scale
+
+            # Find 𝑘min = min(𝑘) and 𝑘max = max(𝑘) to change to log-scale
+            k_min = minimum(degree(graph))
+            k_max = maximum(degree(graph))
+            log_data = log.(degree(network))
+            bin_edges = range(log(k_min), stop=log(k_max + 1), length=num_bins+1)
+            total_elements = length(log_data)
+
+            bin_counts = zeros(Int, length(bin_edges))
+
+            for element in log_data
+                # Find the index of the bin the element belongs to
+                bin_index = findfirst(x -> x >= element, bin_edges[2:length(bin_counts)])
+                bin_counts[bin_index] += 1
+            end
+
+            bin_counts=bin_counts[1:length(bin_counts)-1]
+
+            probabilities=bin_counts/total_elements
+
+            # Calculate CCDF
+            if CCDF
+                ccdf_values = 1.0 .- cumsum(probabilities)
+                plot=bar(bin_edges, ccdf_values,  xlabel="log(K)", ylabel="Comp. Cum. Log(Pk)", title="CCDF Log-Log Histogram",xticks=bin_edges, legend=false,bar_edges=false,xrotation=45, xformatter=custom_xformatter )
+            else
+                plot=bar(bin_edges, probabilities,  xlabel="log(K)", ylabel="Log(Pk)", title="Log-Log PDF Histogram",xticks=bin_edges, legend=false,bar_edges=false,xrotation=45, xformatter=custom_xformatter )
+
+            end
+
+        else
+
+            if CCDF
+                plt=histogram(degrees, weights=probabilities, bins=num_bins)
+
+                deg_bins=plt[1][2][:x]
+                prob_bins=plt[1][2][:y]
+                
+                # Calculate CCDF
+                cum_prob_bins=1 .- cumsum(prob_bins)
+                plot=bar(deg_bins,cum_prob_bins, xlabel="Degree (k)", ylabel="Comp. Cum. P(k)", title=" CCDF Histogram",xticks=deg_bins, legend=false,bar_edges=false,xrotation=45, xformatter=custom_xformatter )
+            
+            else
+                plot = histogram(degrees, weights=probabilities, xlabel="Degree (k)", ylabel="Probability (P(K))", title="PDF Histogram" ,legend=false, bins=num_bins, xformatter=custom_xformatter )
+            end
+
+        end
+        
+        return plot
+    end
+
 end
