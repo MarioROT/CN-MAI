@@ -5,7 +5,7 @@ net_descriptors = Dict{String, Vector}()
 for dir in readdir("A1-Networks")
     for file in readdir("A1-networks/$dir")
         println("Processing $file...")
-        graph, edge_weights = NetworkProcessing.read_weighted_net("A1-networks/$dir/$file")
+        graph, edge_weights = NetworkProcessing.read_network("A1-networks/$dir/$file")
        net_descriptors[file] = NetworkProcessing.network_num_descriptors(graph, false)
     end
 end

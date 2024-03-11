@@ -145,13 +145,43 @@ module NetworkProcessing
         return weights_count
     end
 
+
+    function compute_max_path_length_per_node(g::AbstractGraph)
+        max_lengths = Dict{Int,Int}()
+        for src in vertices(g)
+            # Initialize a dictionary to hold distances, defaulting to -1 (indicating unreachable)
+            distances = fill(-1, nv(g))
+            distances[src] = 0  # Distance to self is 0
+
+            # BFS
+            bfs_queue = [src]
+            while !isempty(bfs_queue)
+                current_vertex = popfirst!(bfs_queue)
+                for neighbor in neighbors(g, current_vertex)
+                    if distances[neighbor] == -1  # If not visited
+                        distances[neighbor] = distances[current_vertex] + 1
+                        push!(bfs_queue, neighbor)
+                    end
+                end
+            end
+
+            # Find the maximum distance from src to any other node
+            max_distance = maximum(distances)
+            max_lengths[src] = max_distance
+        end
+        return max_lengths
+    end
+
+
+
     function nodes_num_descriptors(graph, edge_weights, vertex_labels = false, verbose = false)
         num_nodes = nv(graph)
         node_descriptors = Dict{Any, Vector}()
         degrees = degree(graph)
         strenghts = compute_strength(edge_weights)
         aspls = shortest_paths(graph).dists
-        lspls = maximum(collect(adjacency_matrix(graph)); dims = 2)
+#         lpls = maximum(collect(adjacency_matrix(graph)); dims = 2)
+        lpls = compute_max_path_length_per_node(graph)
         b_centralities = betweenness_centrality(graph) 
         e_centralities = eigenvector_centrality(graph)
         pageranks = pagerank(graph)
@@ -159,7 +189,7 @@ module NetworkProcessing
             deg = degrees[i]
             stren = strenghts[i]
             aspl = sum(aspls[i,:])/(num_nodes-1)
-            lspl = lspls[i]
+            lspl = lpls[i]
             cl_cf = local_clustering_coefficient(graph, i)
             bc = b_centralities[i] 
             ec = e_centralities[i]
@@ -172,7 +202,7 @@ module NetworkProcessing
             end
         end
     
-        node_descriptors_df = construct_df(node_descriptors, ["Degree", "Strength", "ASPL", "LSPL", "Clust Coeff", "Betweeness", "Eigenvector", "PageRank"])
+        node_descriptors_df = construct_df(node_descriptors, ["Degree", "Strength", "ASPL", "LPL", "Clust Coeff", "Betweeness", "Eigenvector", "PageRank"])
     
         if verbose
             println(node_descriptors_df)
