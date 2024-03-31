@@ -12,6 +12,7 @@ module NetworkProcessing
     using Statistics
     using DataFrames
     using Plots
+    using Distributions
 
     function parse_vertices_labels(filepath)
         vertex_labels = Dict{Int, AbstractString}()
@@ -217,8 +218,11 @@ module NetworkProcessing
         return string(round(x, digits=3))  
     end
 
-# Function to calculate the degree probability distribution function and the complimentary cummulative distribution function
+    function custom_xformatter(x)
+      return string(round(x, digits=3))  # Round to 1 decimal place
+    end
 
+    # Function to calculate the degree probability distribution function and the complimentary cummulative distribution function
     function degree_pdf(graph, num_bins::Int=10, log_scale::Bool=false, CCDF::Bool=false)
 
         degree_counts = Graphs.degree_histogram(graph)
@@ -236,7 +240,7 @@ module NetworkProcessing
             # Find 𝑘min = min(𝑘) and 𝑘max = max(𝑘) to change to log-scale
             k_min = minimum(degree(graph))
             k_max = maximum(degree(graph))
-            log_data = log.(degree(network))
+            log_data = log.(degree(graph))
             bin_edges = range(log(k_min), stop=log(k_max + 1), length=num_bins+1)
             total_elements = length(log_data)
 
@@ -300,5 +304,56 @@ module NetworkProcessing
                 write(io, "$(src(e)) $(dst(e))\n") 
             end
         end
+    end
+
+    # compute theoretical probability distribution
+    function compute_theoretical_degree_distribution(Mtype, graph, params)
+        if Mtype in ["Erdos-Renyi/NP", "Erdos-Renyi/NK"]
+            maxD = maximum(degree(graph))
+            minD = minimum(degree(graph))
+            k_values = minD:maxD+1
+            N, p = params
+            if Mtype == "Erdos-Renyi/NK"
+                p = 2*p/(N*(N-1))
+            end
+            degree_distribution = Binomial(N-1, p)
+            theoretical_probabilities = [pdf(degree_distribution, k) for k in k_values]
+            return plot!(k_values, theoretical_probabilities, line=(:red, 2), marker=:none)
+        elseif Mtype in ["Barabasi-Albert"]
+            degrees = degree(graph)
+            m_0, N, m = params 
+            k_min = m
+            k_max = maximum(degrees) 
+            k_values_theo = k_min:k_max
+            p_k_theo = [2 * m^2 / k^3 for k in k_values_theo]
+        
+            return plot!(k_values_theo, p_k_theo, xscale=:log10, yscale=:log10, line=(:solid, :red), label="Theoretical")
+        end
+    end
+    # Experimental degree distribution
+    function compute_experimental_degree_distribution(Mtype, graph, params)
+        if Mtype in ["Erdos-Renyi/NP", "Erdos-Renyi/NK"]
+            maxD = maximum(degree(graph))
+            return degree_pdf(graph, maxD+1)
+        elseif Mtype in ["Barabasi-Albert"]
+            degrees = degree(graph)
+            degree_counts = Dict{Int, Int}()
+            for degree in degrees
+                degree_counts[degree] = get(degree_counts, degree, 0) + 1
+            end
+            total_nodes = length(degrees)
+            experimental_distribution = Dict{Int, Float64}()
+            for (degree, count) in degree_counts
+                experimental_distribution[degree] = count / total_nodes
+            end
+
+            # Prepare experimental data for plotting
+            k_values_exp = sort(collect(keys(experimental_distribution)))
+            p_k_exp = [experimental_distribution[k] for k in k_values_exp]
+
+            # Plotting both distributions on a log-log scale
+            return plot(k_values_exp, p_k_exp, xscale=:log10, yscale=:log10, line=(:dot, :blue), marker=(:circle, :blue), label="Experimental")
+        end
+        
     end
 end
