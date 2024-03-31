@@ -306,6 +306,16 @@ module NetworkProcessing
         end
     end
 
+    #Creates a power-law distribution of data
+    function power_law_dist(gamma::Float64, max_degree::Int, n::Int)
+        degrees = zeros(Int, n)
+        for i in 1:n
+            degree = round(Int, rand()^(-1/(gamma - 1)))
+            degrees[i] = min(degree, max_degree)
+        end
+        return degrees
+    end
+
     # compute theoretical probability distribution
     function compute_theoretical_degree_distribution(Mtype, graph, params)
         if Mtype in ["Erdos-Renyi/NP", "Erdos-Renyi/NK"]
@@ -328,11 +338,37 @@ module NetworkProcessing
             p_k_theo = [2 * m^2 / k^3 for k in k_values_theo]
         
             return plot!(k_values_theo, p_k_theo, xscale=:log10, yscale=:log10, line=(:solid, :red), label="Theoretical")
+        elseif Mtype in ["Watts-Strogatz"]
+            return 1
+        elseif Mtype in ["Configuration-Model"]
+            typeP, n, maxi, param = params
+            if typeP == "poisson"
+                poisson_distribution = Poisson(param)
+                vals = zeros(Int, n)
+                for i in 1:n
+                    vals[i] = min(rand(poisson_distribution), maxi)
+                end
+            else
+                vals = power_law_dist(param, maxi, n)
+            end
+
+            degree_distribution = Dict{Int, Number}()
+            for d in vals
+                degree_distribution[d] = get(degree_distribution, d, 0) + 1
+            end
+
+            total = sum(values(degree_distribution))
+            for (k, v) in degree_distribution
+                degree_distribution[k] = v / total
+            end
+            sorted_degrees = sort(collect(keys(degree_distribution)))
+            probabilities = [degree_distribution[k] for k in sorted_degrees]
+            return plot!(sorted_degrees, probabilities, line=(:red, 2), marker=:none)
         end
     end
     # Experimental degree distribution
     function compute_experimental_degree_distribution(Mtype, graph, params)
-        if Mtype in ["Erdos-Renyi/NP", "Erdos-Renyi/NK"]
+        if Mtype in ["Erdos-Renyi/NP", "Erdos-Renyi/NK", "Watts-Strogatz", "Configuration-Model"]
             maxD = maximum(degree(graph))
             return degree_pdf(graph, maxD+1)
         elseif Mtype in ["Barabasi-Albert"]
@@ -353,7 +389,6 @@ module NetworkProcessing
 
             # Plotting both distributions on a log-log scale
             return plot(k_values_exp, p_k_exp, xscale=:log10, yscale=:log10, line=(:dot, :blue), marker=(:circle, :blue), label="Experimental")
-        end
-        
+        end 
     end
 end

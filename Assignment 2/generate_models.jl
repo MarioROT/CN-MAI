@@ -22,10 +22,10 @@ for (k,v) in models
         name2save = (k*"/"*split(k,"/")[1]*"_"*join(params, "_"))
         graph = model(params...)
         NetworkProcessing.save_network(graph, "$save_model_dir/$name2save.net")
-        if (params[1] <= 50 && occursin("Erdos", k)) || (params[2] <= 100 && occursin("Bar", k))
+        if (occursin("Erdos", k) && params[1] <= 50) || (occursin("Bar", k) && params[2] <= 100) || (occursin("Config", k) && params[2] <= 100  ) || (occursin("Watts", k) && params[1] <= 50)
             savefig(graphplot(graph, curves = false), "$save_fig_dir/$name2save.png")
         end
-        if (occursin("Erdos", k) && params[1] >= 1000  ) || (occursin("Bar", k) && params[2] >= 1000  ) || (occursin("Config", k) && params[2] <= 100  ) || (occursin("Watts", k) && params[1] <= 50 )
+        if (occursin("Erdos", k) && params[1] >= 1000) || (occursin("Bar", k) && params[2] >= 1000) || (occursin("Watts", k) && params[1] >= 1000) || (occursin("Config", k) && params[2] >= 1000)
             dist_graph = NetworkProcessing.compute_experimental_degree_distribution(k, graph, params)
             NetworkProcessing.compute_theoretical_degree_distribution(k, graph, params)
             savefig(dist_graph, "$save_pdf_dir/$name2save.png")
