@@ -1,10 +1,14 @@
 module NetworkModels
     export erdos_renyi
     export barabasi_albert
+    export small_world
+    export configuration_model
     
     using Graphs
+    using GraphIO
     using Distributions
     using Plots, GraphRecipes
+    using Random
 
     function erdos_renyi(n::Int,k::Int)
         g = SimpleGraph(n)
@@ -87,5 +91,79 @@ module NetworkModels
             end
         end
         return g
+    end
+
+    function small_world(n::Int, k::Int, p::Float64)
+        g = Graphs.SimpleGraph(n)
+        neighbor=div(k,2)
+      
+        #We create a ring network
+        for node in 1:n
+          for k in 1:neighbor
+            k1=node+k
+            k2=node+n-k
+      
+            if k1>n
+              Graphs.add_edge!(g, node, k1%n)
+            else
+              Graphs.add_edge!(g, node, k1)
+            end
+      
+            if k2>n
+              Graphs.add_edge!(g, node, k2%n)
+            else
+              Graphs.add_edge!(g, node, k2)
+            end
+          end
+        end
+      
+        #We change randomly edge connections to add higher clustering
+        for edge in Graphs.edges(g)
+          if rand() < p
+      
+            u, v = Graphs.src(edge), Graphs.dst(edge)
+            target = rand(1:n)
+      
+            #Not self loops or previous or multi-edge allowed
+            while target == u || Graphs.has_edge(g, u, target)
+                target = rand(1:n)
+            end
+      
+            Graphs.rem_edge!(g, edge)
+            Graphs.add_edge!(g, u, target)
+          end
+        end
+        return g
+      end
+
+    function configuration_model(degree_distribution::Vector{Int})
+        num_nodes = length(degree_distribution)
+        total_stubs = sum(degree_distribution)
+        # In case total degrees is odd, make it even
+        if total_stubs % 2 != 0
+            idx = rand(1:num_nodes)
+            degree_distribution[idx] += 1
+            total_stubs += 1
+        end
+        # Create as many stubs as the degree of each node
+        stubs = []
+        for (node, degree) in enumerate(degree_distribution)
+            for _ in 1:degree
+                push!(stubs, node)
+            end
+        end
+        # Randomly order the stubs
+        Random.shuffle!(stubs)
+        graph = Graphs.SimpleGraph(num_nodes)
+
+        while length(stubs) >= 2
+            u = pop!(stubs)
+            v = pop!(stubs)
+            # Avoiding self-loops and multiple edges
+            if u != v && !Graphs.has_edge(graph, u, v)
+                Graphs.add_edge!(graph, u, v)
+            end
+        end
+        return graph
     end
 end
