@@ -20,8 +20,8 @@ module NetworkModels
         connected = 0
 
         while connected < k 
-            r1 = rand(1:10)
-            r2 = rand(1:10)
+            r1 = rand(1:n)
+            r2 = rand(1:n)
 
             if r1 != r2 && !(r1 in connections[r2]) && !(r2 in connections[r1])
                 add_edge!(g, r1, r2)
