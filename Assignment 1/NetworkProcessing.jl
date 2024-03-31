@@ -282,4 +282,23 @@ module NetworkProcessing
         return plot
     end
 
+    # Function to save a graph to .net format
+    function save_network(g::AbstractGraph, filename::String, file_type="net"::String)
+        n = nv(g) 
+        edges = Graphs.edges(g) 
+
+        open(filename, "w") do io
+            # Writing the vertices
+            write(io, "*Vertices $n\n")
+            for i in 1:n
+                write(io, "$i \"Node $i\"\n")
+            end
+
+            # Writing the edges
+            write(io, "*Edges\n")
+            for e in edges
+                write(io, "$(src(e)) $(dst(e))\n") 
+            end
+        end
+    end
 end
