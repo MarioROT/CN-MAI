@@ -4,7 +4,7 @@ using Plots, GraphRecipes
 
 models = Dict("Erdos-Renyi/NK"=>[NetworkModels.erdos_renyi, [(10,45), (20, 25), (20, 50), (20, 110), (50,180), (100, 250), (1000, 925), (10000, 3254)]],
               "Erdos-Renyi/NP"=>[NetworkModels.erdos_renyi, [(10,0.9), (20, 0.3), (20, 0.6), (20, 0.9), (50,0.8), (100, 0.5), (1000, 0.4), (10000, 0.2)]],
-              "Barabasi-Albert"=>[NetworkModels.barabasi_albert,[), (10,30,5(20,30,6), (20,30,12), (20,30, 18), (50,90, 12), (100, 120, 17), (1000, 1980, 18), (10000, 15000, 19)]])
+              "Barabasi-Albert"=>[NetworkModels.barabasi_albert,[(10,30,5), (20,30,6), (20,30,12), (20,30, 18), (50,90, 12), (100, 120, 17), (1000, 1980, 18), (10000, 15000, 19)]])
 #models = Dict("Erdos-Renyi/NK"=>[NetworkModels.erdos_renyi, [(10,45), (50,180), (100, 250), (1000, 925), (10000, 3254)]])
 
 save_model_dir = "GeneratedGraphs"
