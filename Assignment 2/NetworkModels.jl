@@ -59,7 +59,6 @@ module NetworkModels
         else
             binomialDistribution = Binomial(n*(n-1)/2,p)
             k = Integer(rand(binomialDistribution, 1)[1])
-            print
             return erdos_renyi(n,k)
         end
     end
