@@ -1,15 +1,16 @@
 import networkx as nx
 import community as community_louvain
 import matplotlib.pyplot as plt
-from sklearn.metrics import normalized_mutual_info_score, adjusted_rand_score
+from sklearn.metrics import normalized_mutual_info_score, adjusted_rand_score, jaccard_score
 from infomap import Infomap
 import numpy as np
 import community as community_louvain
 import leidenalg as la
 import igraph as ig
-from scipy.cluster.hierarchy import fcluster
-from scipy.cluster.hierarchy import linkage
+from scipy.cluster.hierarchy import fcluster, linkage
 from scipy.spatial.distance import pdist
+from sklearn.metrics.cluster import mutual_info_score
+from scipy.stats import entropy
 
 def load_network(file_path):
     # Load a network from a Pajek .net file
@@ -50,7 +51,7 @@ def detect_communities(G, method='louvain'):
         raise ValueError("Unsupported method: Choose 'louvain' or 'infomap'")
     return partition
 
-def visualize_communities(G, partition, title, show = True):
+def visualize_communities(G, partition, title, show=True):
     if not all(node in partition for node in G.nodes()):
         missing_nodes = [node for node in G.nodes() if node not in partition]
         print(f"Warning: Nodes missing in partition: {missing_nodes}")
@@ -87,10 +88,16 @@ def visualize_communities(G, partition, title, show = True):
     cbar.set_label('Community ID')
 
     ax.set_title(title)
-    ax.axis('off')  # Turn off the axis
+    ax.axis('off') 
     
     if show:
         plt.show()
+
+def mutual_info_variation(true_labels, predicted_labels):
+    entropy_true = entropy(np.unique(true_labels, return_counts=True)[1])
+    entropy_pred = entropy(np.unique(predicted_labels, return_counts=True)[1])
+    mutual_info = mutual_info_score(true_labels, predicted_labels)
+    return (entropy_true + entropy_pred - 2 * mutual_info) / (entropy_true + entropy_pred)
     
 def jaccard_index(set1, set2):
     """Calculate the Jaccard Index between two sets."""
@@ -108,8 +115,6 @@ def partition_to_sets(partition):
     for node, community in partition.items():
         community_dict[community].add(node)
     return list(community_dict.values())
-
-from sklearn.metrics import jaccard_score
 
 def compare_communities(community_sets_true, community_sets_computed):
     """Compare two lists of community sets and return average Jaccard Index."""
@@ -130,7 +135,8 @@ def calculate_metrics(true_partition, detected_partition):
     detected_labels = [detected_partition[node] for node in sorted(detected_partition)]
     
     nmi = normalized_mutual_info_score(true_labels, detected_labels)
-    ari = adjusted_rand_score(true_labels, detected_labels)
+#     ari = adjusted_rand_score(true_labels, detected_labels)
+    ari = mutual_info_variation(true_labels, detected_labels)
     
     true_sets = partition_to_sets(true_partition)
     computed_sets = partition_to_sets(detected_partition)
