@@ -92,6 +92,19 @@ def visualize_communities(G, partition, title, show=True):
     
     if show:
         plt.show()
+        
+def compute_modularity_groups(G, partition):
+    groups = {}
+    for k,v in partition.items():
+        if v not in list(groups.keys()):
+            groups[v] = {k}
+        else:
+            groups[v].update([k])
+    try:
+        mod = nx.community.modularity(G, groups.values())
+    except:
+        mod = 0
+    return mod, len(groups)
 
 def mutual_info_variation(true_labels, predicted_labels):
     entropy_true = entropy(np.unique(true_labels, return_counts=True)[1])
