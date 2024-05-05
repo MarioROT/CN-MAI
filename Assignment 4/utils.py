@@ -37,6 +37,9 @@ def plot_timesteps(betas, p_series, title,save_figure=True):
     plt.legend(title='(β)')
     plt.grid(True)
     
+    plt.ylim(0, 1)
+     
+    
     if save_figure:
         filename = re.sub('[^\w\-_\. ]', '_', title) + '.png'
         plt.savefig(filename, format='png', bbox_inches='tight')
@@ -63,6 +66,9 @@ def plot_beta_vs_p(beta_values, p_values, mu_values, title, save_figure=True):
     plt.title(title)
     plt.legend(title='(μ)')
     plt.grid(True)
+    plt.xlim(0, 1)
+    plt.ylim(0, 1)
+     
      
     if save_figure:
         filename = re.sub('[^\w\-_\. ]', '_', title) + '.png'
