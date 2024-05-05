@@ -7,14 +7,14 @@ import numpy as np
 import utils
 from utils import graph_dict, save_csv, save_network_to_pajek, plot_timesteps ,plot_beta_vs_p
 
-rep=5 #100
-t_max=100 #1000
-t_trans=90 #900
+rep=50 #100
+t_max=1000
+t_trans=900
 p0=0.2
-mu_values=[0.5] #[0.1,0.3,0.5,0.9]
+mu_values=[0.1,0.5,0.9]
 betas_plot=[0.1,0.2,0.3,0.5,0.7,0.9] 
-nodes=[10] #[500,800]
-k_values=[2] #[6,12]
+nodes=[500,700]
+k_values=[3,5]
 networks={}
 for k in k_values:
     for node in nodes:
@@ -61,11 +61,12 @@ for network_name in networks:
         p_values_vs_beta.append(p)
         
     
+        
+        p_values_timesteps=np.array(pd.DataFrame(p_values_timesteps)).T
+        title2=title+f', SIS (RP, WOR, μ={mu}, ρ₀={p0})'
+        save_csv(title2, ['beta','pvalue'], [beta_values,p_values_timesteps])
+        plot_timesteps(betas_plot, p_values_timesteps, title2,True)
+        
     beta_values=np.linspace(0,1,51)
-    p_values_timesteps=np.array(pd.DataFrame(p_values_timesteps)).T
-    title2=title+f', SIS (RP, WOR, μ={mu}, ρ₀={p0})'
-    plot_timesteps(betas_plot, p_values_timesteps, title2,True)
     plot_beta_vs_p(beta_values, p_values_vs_beta, mu_values, title,True)
-    
-    save_csv(title2, ['beta','pvalue'], [beta_values,p_values_timesteps])
     save_csv(title, ['beta','pvalue','mu'], [beta_values,p_values_vs_beta,mu_values])

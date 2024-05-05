@@ -42,7 +42,7 @@ def plot_timesteps(betas, p_series, title,save_figure=True):
         plt.savefig(filename, format='png', bbox_inches='tight')
         print(f"Figure saved as {filename}")
         
-    plt.show()
+    #plt.show()
     
 def plot_beta_vs_p(beta_values, p_values, mu_values, title, save_figure=True):
    
@@ -69,7 +69,7 @@ def plot_beta_vs_p(beta_values, p_values, mu_values, title, save_figure=True):
         plt.savefig(filename, format='png', bbox_inches='tight')
         print(f"Figure saved as {filename}")
         
-    plt.show()
+    #plt.show()
  
 
 def save_csv(filename, headers, data):
