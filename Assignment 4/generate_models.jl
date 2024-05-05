@@ -3,8 +3,8 @@ include("../Assignment 2/NetworkModels.jl")
 using Plots, GraphRecipes
 using Graphs
 
-models = Dict("Erdos-Renyi/NK"=>[NetworkModels.erdos_renyi, [(500,25), (500, 50), (700, 40), (700, 80)]]
-                "Erdos-Renyi/NP"=>[NetworkModels.erdos_renyi, [(500,0.3), (500, 0.7), (700, 0.3), (700,0.7)]],
+models = Dict("Erdos-Renyi/NK"=>[NetworkModels.erdos_renyi, [(500,1500)]])
+               "Erdos-Renyi/NP"=>[NetworkModels.erdos_renyi, [(500,0.3), (500, 0.7), (700, 0.3), (700,0.7)]],
                "Barabasi-Albert"=>[NetworkModels.barabasi_albert,[(50, 600, 6), (50, 600, 9, 1)]],
                "Configuration-Model"=>[NetworkModels.configuration_model, [("power-law", 700, 8, 3.0),("power-law", 700, 10, 3.0)]])
               

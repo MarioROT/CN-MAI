@@ -6,8 +6,8 @@ using DataStructures
 using CSV
 using Plots
 
-baseDir = "NewNets/"
-resultsDir = "NewResults/"
+baseDir = "Networks/"
+resultsDir = "Results/"
 μs = [0.1,0.5,0.9]
 βs = LinRange(0,1,51)
 networks = readdir(baseDir)
@@ -20,7 +20,7 @@ for (i,network) in enumerate(networks)
     for (j,comb) in enumerate(DynamicSimulations.allcombinations(βs, μs))
 #         println("--- > Running combination: $j - $comb")
         initParams = Dict("graph"=>graph,"μ"=>comb[2], "β"=>comb[1], "p0"=>0.2)
-        p = DynamicSimulations.monte_carlo(50, 100, 90, initParams)
+        p = DynamicSimulations.monte_carlo(100, 1000, 900, initParams)
         if j %51 == 1
             temp_res[comb[2]] = Dict("p"=>[p], "β"=>[comb[1]])
         else
@@ -36,9 +36,9 @@ for (i,network) in enumerate(networks)
             plot!(dict["β"],dict["p"], marker=:cirlce, label=μ)
         end
     end
-    savefig(resultsDir * "/$network.png")
+    savefig(resultsDir * "/Figs/$network.png")
 end
 
 df = NetworkProcessing.construct_df(net_results, ["network","μ","β","p"])
 
-CSV.write("NewNets_Exercise_Results.csv", df)
+CSV.write(resultsDir * "/Reports/Exercise_Results.csv", df)
